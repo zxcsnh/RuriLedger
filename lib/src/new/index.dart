@@ -4,6 +4,7 @@ import 'package:myapp/src/utils/model.dart';
 import 'package:myapp/src/utils/db.dart';
 import 'package:myapp/src/utils/DatePickerUtil.dart';
 import 'package:myapp/src/utils/BillListData.dart';
+import 'package:myapp/src/utils/app_colors.dart';  // 添加这行导入
 
 class NewPage extends StatefulWidget {
   final Bill? initialBill;
@@ -38,9 +39,9 @@ class _NewPageState extends State<NewPage> {
     return ChangeNotifierProvider(
       create: (context) => BillData(initialBill: widget.initialBill),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         appBar: AppBar(
-          backgroundColor: Colors.blue[50],
+          backgroundColor: AppColors.appBarBackground,
           title: const Text('记一笔', style: TextStyle(fontWeight: FontWeight.bold)),
           centerTitle: true,
           elevation: 0,
@@ -80,13 +81,14 @@ class _NewPageState extends State<NewPage> {
         });
       },
       style: TextButton.styleFrom(
-        foregroundColor: isSelect == isExpense ? Colors.blue : Colors.grey,
+        foregroundColor: isSelect == isExpense ? AppColors.buttonTabActive : AppColors.buttonTabInactive,
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: 16,
           fontWeight: isSelect == isExpense ? FontWeight.bold : FontWeight.normal,
+          color: isSelect == isExpense ? AppColors.buttonTabActive : AppColors.buttonTabInactive,
         ),
       ),
     );
@@ -94,7 +96,7 @@ class _NewPageState extends State<NewPage> {
 
   Widget _buildTopCard() {
     return Card(
-      color: Colors.green[50],
+      color: AppColors.inputCardBackground,
       margin: const EdgeInsets.all(16),
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -124,7 +126,7 @@ class _NewPageState extends State<NewPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
-        color: Colors.green[50],
+        color: AppColors.inputCardBackground,
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -190,9 +192,9 @@ class _NewPageState extends State<NewPage> {
           }
           Navigator.pop(context, true);
         },
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.fabBackground,
         elevation: 4,
-        child: const Icon(Icons.save, color: Colors.white),
+        child: Icon(Icons.save, color: AppColors.fabIcon),
       ),
     );
   }
@@ -259,11 +261,11 @@ class BillItem extends StatelessWidget {
     
     return Card(
       elevation: isSelected ? 4 : 1,
-      color: isSelected ? Colors.blue.shade50 : Colors.white,
+      color: isSelected ? AppColors.cardSelected : AppColors.cardUnselected,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isSelected ? Colors.blue : Colors.grey.shade200,
+          color: isSelected ? AppColors.borderSelected : AppColors.borderUnselected,
           width: isSelected ? 1.5 : 1,
         ),
       ),
@@ -281,14 +283,14 @@ class BillItem extends StatelessWidget {
               Icon(
                 billItem[0]['icon'],
                 size: 28,
-                color: isSelected ? Colors.blue : Colors.grey[700],
+                color: isSelected ? AppColors.iconSelected : AppColors.iconUnselected,
               ),
               const SizedBox(height: 8),
               Text(
                 billItem[0]['name'],
                 style: TextStyle(
                   fontSize: 12,
-                  color: isSelected ? Colors.blue : Colors.grey[700],
+                  color: isSelected ? AppColors.iconSelected : AppColors.iconUnselected,
                 ),
               ),
             ],
@@ -345,7 +347,7 @@ class _InputMoneyState extends State<InputMoney> {
                 hintText: '0.00',
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 8),
-                hintStyle: TextStyle(fontSize: 18, color: Colors.grey),
+                hintStyle: TextStyle(fontSize: 18, color: AppColors.textHint),
               ),
               style: const TextStyle(
                 fontSize: 18,
@@ -401,7 +403,7 @@ class _InputRemarkState extends State<InputRemark> {
         hintText: '添加备注...',
         border: InputBorder.none,
         contentPadding: EdgeInsets.symmetric(vertical: 12),
-        hintStyle: TextStyle(color: Colors.grey),
+        hintStyle: TextStyle(fontSize: 18, color: AppColors.textHint),
       ),
       style: const TextStyle(fontSize: 14),
       onChanged: (value) {
@@ -428,7 +430,7 @@ class DateSelect extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.calendar_today, size: 20, color: Colors.blue),
+            Icon(Icons.calendar_today, size: 20, color: AppColors.iconCalendar),
             const SizedBox(width: 8),
             Text(
               billData.bill.date.toLocal().toString().split(' ')[0],
@@ -438,7 +440,7 @@ class DateSelect extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.arrow_drop_down, color: Colors.grey),
+            Icon(Icons.arrow_drop_down, color: AppColors.iconUnselected),
           ],
         ),
       ),

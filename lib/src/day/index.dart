@@ -6,7 +6,7 @@ import 'package:myapp/src/month/index.dart';
 import 'package:myapp/src/utils/model.dart';
 import 'package:myapp/src/utils/db.dart';
 import 'package:myapp/src/utils/DatePickerUtil.dart';
-
+import 'package:myapp/src/utils/app_colors.dart';
 class BillList extends ChangeNotifier {
   List<Bill> _bills = [];
   DateTime _currentDate = DateTime.now();
@@ -55,7 +55,7 @@ class _DayPageState extends State<DayPage> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColors.pageBackground,
       body: Column(
         children: [
           HeaderCard(),
@@ -84,10 +84,10 @@ class HeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: AppColors.cardBackground,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: AppColors.lightShadow,
             spreadRadius: 2,
             blurRadius: 8,
             offset: const Offset(0, 4),
@@ -101,7 +101,7 @@ class HeaderCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.calendar_today, color: Colors.blue[600], size: 20),
+                  Icon(Icons.calendar_today, color: AppColors.primary, size: 20),
                   const SizedBox(width: 8),
                   InkWell(
                     onTap: () => billList.selectDate(context),
@@ -109,7 +109,7 @@ class HeaderCard extends StatelessWidget {
                       '${billList.currentDate.year}年${billList.currentDate.month}月${billList.currentDate.day}日',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.blue[600],
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -119,14 +119,14 @@ class HeaderCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: AppColors.pageBackground,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${billList.bills.length}笔',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Colors.grey,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -153,7 +153,7 @@ class HeaderCard extends StatelessWidget {
           title,
           style: TextStyle(
             fontSize: 14,
-            color: Colors.black,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 4),
@@ -230,7 +230,7 @@ class _BillCardState extends State<BillCard> {
             right: 20,
             child: FloatingActionButton(
               mini: true,
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.fabBackground,
               onPressed: () {
                 _scrollController.animateTo(
                   0,
@@ -238,7 +238,7 @@ class _BillCardState extends State<BillCard> {
                   curve: Curves.easeOut,
                 );
               },
-              child: Icon(Icons.arrow_upward, color: Colors.blue[600]),
+              child: Icon(Icons.arrow_upward, color: AppColors.iconSelected),
             ),
           ),
       ],
@@ -263,12 +263,12 @@ class _BillItemState extends State<BillItem> {
     final isIncome = widget.bill.type == 'income';
 
     return Card(
-      color: Colors.green[50],
+      color: AppColors.expandedCardBackground,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.blue[200]!, width: 1),
+        side: BorderSide(color: AppColors.border, width: 1),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -287,13 +287,13 @@ class _BillItemState extends State<BillItem> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: isIncome
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
+                          ? AppColors.income.withOpacity(0.1)
+                          : AppColors.expense.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       icon,
-                      color: isIncome ? Colors.green : Colors.red,
+                      color: isIncome ? AppColors.income : AppColors.expense,
                       size: 20,
                     ),
                   ),
@@ -316,7 +316,7 @@ class _BillItemState extends State<BillItem> {
                               widget.bill.remark!,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[600],
+                                color: AppColors.textHint,
                               ),
                             ),
                           ),
@@ -328,7 +328,7 @@ class _BillItemState extends State<BillItem> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isIncome ? Colors.green : Colors.red,
+                      color: isIncome ? AppColors.income : AppColors.expense,
                     ),
                   ),
                 ],
@@ -351,12 +351,12 @@ class _BillItemState extends State<BillItem> {
           const SizedBox(height: 12),
           Text(
             '来源: ${widget.bill.source}',
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            style: TextStyle(color: AppColors.textHint, fontSize: 13),
           ),
           const SizedBox(height: 4),
           Text(
             '时间: ${widget.bill.date.toLocal().toString().substring(0, 16)}',
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            style: TextStyle(color: AppColors.textHint, fontSize: 13),
           ),
           const SizedBox(height: 12),
           Row(
@@ -364,7 +364,7 @@ class _BillItemState extends State<BillItem> {
             children: [
               TextButton(
                 style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
+                  foregroundColor: AppColors.buttonDanger,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
                 onPressed: _showDeleteDialog,
@@ -379,7 +379,7 @@ class _BillItemState extends State<BillItem> {
               const SizedBox(width: 8),
               TextButton(
                 style: TextButton.styleFrom(
-                  foregroundColor: Colors.blue,
+                  foregroundColor: AppColors.buttonPrimary,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
                 onPressed: _navigateToEditPage,

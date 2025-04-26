@@ -6,6 +6,7 @@ import 'package:myapp/src/utils/db.dart';
 import 'package:myapp/src/new/index.dart';
 import 'package:myapp/src/month/index.dart';
 import 'package:myapp/src/utils/BillListData.dart';
+import 'package:myapp/src/utils/app_colors.dart'; // Import the new colors file
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,15 +34,16 @@ class MyApp extends StatelessWidget {
           titleTextStyle: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: AppColors.textPrimary,
           ),
         ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           elevation: 8,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
+          selectedItemColor: AppColors.iconSelected,
+          unselectedItemColor: AppColors.iconUnselected,
           showSelectedLabels: true,
           showUnselectedLabels: true,
+          backgroundColor: AppColors.bottomNavBarBackground,
         ),
       ),
       home: MultiProvider(
@@ -74,18 +76,19 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
+        backgroundColor: AppColors.dialogBackground,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             style: TextButton.styleFrom(
-              foregroundColor: Colors.grey,
+              foregroundColor: AppColors.buttonSecondary,
             ),
             child: const Text('取消'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
-              foregroundColor: Colors.blue,
+              foregroundColor: AppColors.buttonPrimary,
             ),
             child: const Text('确定'),
           ),
@@ -107,21 +110,25 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         }
       },
       child: Scaffold(
-        // backgroundColor: Colors.blue,
-        body: IndexedStack(
-          index: _currentIndex,
-          children: const [
-            DayPage(),
-            Placeholder(), // 这个不会被显示，因为点击会导航到NewPage
-            MonthPage(),
-          ],
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Container(
+            color: AppColors.appBarBackground,
+            child: IndexedStack(
+              index: _currentIndex,
+              children: const [
+                DayPage(),
+                Placeholder(),
+                MonthPage(),
+              ],
+            ),
+          ),
         ),
         bottomNavigationBar: Container(
-          // color: Colors.red,
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                color: Colors.grey,
+                color: AppColors.shadow,
                 spreadRadius: 1,
                 blurRadius: 10,
                 offset: const Offset(0, -2),
@@ -129,8 +136,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             ],
           ),
           child: BottomNavigationBar(
-            backgroundColor: Colors.blue[50],
-            // fixedColor: Colors.red,
+            backgroundColor: AppColors.bottomNavBarBackground,
             currentIndex: _currentIndex,
             onTap: (index) {
               if (index == 1) {
