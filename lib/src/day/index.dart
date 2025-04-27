@@ -2,45 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:myapp/src/utils/BillListData.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/src/new/index.dart';
-import 'package:myapp/src/month/index.dart';
+// import 'package:myapp/src/month/index.dart';
 import 'package:myapp/src/utils/model.dart';
 import 'package:myapp/src/utils/db.dart';
-import 'package:myapp/src/utils/DatePickerUtil.dart';
+// import 'package:myapp/src/utils/DatePickerUtil.dart';
 import 'package:myapp/src/utils/app_colors.dart';
-class BillList extends ChangeNotifier {
-  List<Bill> _bills = [];
-  DateTime _currentDate = DateTime.now();
-
-  List<Bill> get bills => _bills;
-  DateTime get currentDate => _currentDate;
-
-  Future<void> fetchBills() async {
-    _bills = await getDayBills(_currentDate);
-    notifyListeners();
-  }
-
-  void selectDate(BuildContext context) async {
-    DateTime? selectedDate = await DatePickerUtil.selectDate(
-      context: context,
-      initialDate: _currentDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (selectedDate != null && selectedDate != _currentDate) {
-      changeDate(selectedDate);
-    }
-  }
-
-  void changeDate(DateTime newDate) {
-    _currentDate = newDate;
-    fetchBills();
-  }
-}
-
+// import 'package:myapp/src/categories/index.dart';
+import 'package:myapp/src/state/daystate.dart';
+import 'package:myapp/src/state/categories.dart';
+// import 'package:myapp/src/state/monthstate.dart';
+import 'package:myapp/src/state/refresh.dart';
 class DayPage extends StatefulWidget {
   const DayPage({super.key});
   @override
-  _DayPageState createState() => _DayPageState();
+  State<DayPage> createState() => _DayPageState();
 }
 
 class _DayPageState extends State<DayPage> with AutomaticKeepAliveClientMixin {
@@ -48,7 +23,10 @@ class _DayPageState extends State<DayPage> with AutomaticKeepAliveClientMixin {
   bool get wantKeepAlive => true;
 
   void refresh() {
-    Provider.of<BillList>(context).fetchBills();
+    String tempTableName = Provider.of<BillCategories>(context).tablename;
+    // Provider.of<BillList>(context, listen: false).fetchBills(tableName: tempTableName);
+    // Provider.of<MonthlyBillSummary>(context, listen: false).fetchBills(tableName: tempTableName);
+    Provider.of<DayBillList>(context).fetchBills(tableName: tempTableName);
   }
 
   @override
@@ -69,9 +47,10 @@ class _DayPageState extends State<DayPage> with AutomaticKeepAliveClientMixin {
 }
 
 class HeaderCard extends StatelessWidget {
+  const HeaderCard({super.key});
   @override
   Widget build(BuildContext context) {
-    final billList = Provider.of<BillList>(context);
+    final billList = Provider.of<DayBillList>(context);
     final income = billList.bills
         .where((bill) => bill.type == "income")
         .map((bill) => bill.money)
@@ -173,7 +152,7 @@ class HeaderCard extends StatelessWidget {
 class BillCard extends StatefulWidget {
   const BillCard({super.key});
   @override
-  _BillCardState createState() => _BillCardState();
+  State<BillCard> createState() => _BillCardState();
 }
 
 class _BillCardState extends State<BillCard> {
@@ -203,13 +182,15 @@ class _BillCardState extends State<BillCard> {
 
   @override
   Widget build(BuildContext context) {
-    final billList = Provider.of<BillList>(context);
+    final billInfo = Provider.of<BillCategories>(context);
+    final billList = Provider.of<DayBillList>(context);
 
     return Stack(
       children: [
         RefreshIndicator(
-          onRefresh: () async => billList.fetchBills(),
+          onRefresh: () async => billList.fetchBills(tableName: billInfo.tablename),
           child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(), // <=== 这一行！
             controller: _scrollController,
             slivers: [
               SliverList(
@@ -287,7 +268,7 @@ class _BillItemState extends State<BillItem> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: isIncome
-                          ? AppColors.income.withOpacity(0.1)
+                          ? AppColors.income.withValues(alpha: 0.1)
                           : AppColors.expense.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
@@ -399,6 +380,8 @@ class _BillItemState extends State<BillItem> {
   }
 
   void _showDeleteDialog() {
+    RefreshState refresh = RefreshState();
+    refresh.getState(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -419,23 +402,23 @@ class _BillItemState extends State<BillItem> {
       ),
     ).then((confirmed) {
       if (confirmed == true) {
-        deleteBill(widget.bill.id!);
-        Provider.of<BillList>(context, listen: false).fetchBills();
-        Provider.of<MonthlyBillSummary>(context, listen: false).fetchBills();
+        deleteBill(widget.bill.id!,tableName: refresh.tableName);
+        refresh.refreshBills();
       }
     });
   }
 
   void _navigateToEditPage() {
+    RefreshState refresh = RefreshState();
+    refresh.getState(context);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NewPage(initialBill: widget.bill),
+        builder: (context) => NewPage(initialBill: widget.bill, tableName: refresh.tableName, name: refresh.name,),
       ),
     ).then((value) {
       if (value == true) {
-        Provider.of<BillList>(context, listen: false).fetchBills();
-        Provider.of<MonthlyBillSummary>(context, listen: false).fetchBills();
+        refresh.refreshBills();
       }
     });
   }

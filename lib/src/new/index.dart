@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/src/utils/model.dart';
 import 'package:myapp/src/utils/db.dart';
-import 'package:myapp/src/utils/DatePickerUtil.dart';
+// import 'package:myapp/src/utils/DatePickerUtil.dart';
 import 'package:myapp/src/utils/BillListData.dart';
 import 'package:myapp/src/utils/app_colors.dart';  // 添加这行导入
-
+// import 'package:myapp/src/categories/index.dart';
+import 'package:myapp/src/state/newstate.dart';
+// import 'package:myapp/src/state/categories.dart';
 class NewPage extends StatefulWidget {
   final Bill? initialBill;
-
-  const NewPage({super.key, this.initialBill});
+  final String? tableName;
+  final String? name;
+  const NewPage({super.key, this.initialBill, this.tableName = 'bills', this.name = '主账单'});
 
   @override
   State<NewPage> createState() => _NewPageState();
@@ -36,23 +39,57 @@ class _NewPageState extends State<NewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => BillData(initialBill: widget.initialBill),
+    return MultiProvider(
+      providers: [
+        // ChangeNotifierProvider(create: (_) => BillCategories()),
+        ChangeNotifierProvider(create: (context) => NewBillData(initialBill: widget.initialBill),),
+      ],
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
           backgroundColor: AppColors.appBarBackground,
-          title: const Text('记一笔', style: TextStyle(fontWeight: FontWeight.bold)),
-          centerTitle: true,
+          // title: const Text('记一笔', style: TextStyle(fontWeight: FontWeight.bold)),
+          // centerTitle: true,
           elevation: 0,
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildTabButton('支出', true),
                   const SizedBox(width: 16),
                   _buildTabButton('收入', false),
+                  const SizedBox(width: 16),
+                  Card(
+                    color: AppColors.cardBackground,
+                    elevation: 4, // 提升卡片的阴影效果
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // 增加圆角半径
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // 添加内边距
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.book, // 添加图标
+                            color: AppColors.iconSelected,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8), // 图标与文字之间的间距
+                          Text(
+                            widget.name ?? '主账单',
+                            style: TextStyle(
+                              fontSize: 16, // 调整字体大小
+                              fontWeight: FontWeight.w600, // 使用半粗体
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                 ],
               ),
             ),
@@ -67,7 +104,7 @@ class _NewPageState extends State<NewPage> {
             ),
           ],
         ),
-        floatingActionButton: _buildSaveButton(),
+        floatingActionButton: _buildSaveButton(widget.tableName ?? 'bills'),
       ),
     );
   }
@@ -80,9 +117,20 @@ class _NewPageState extends State<NewPage> {
           _pageController.jumpToPage(isExpense ? 0 : 1);
         });
       },
-      style: TextButton.styleFrom(
-        foregroundColor: isSelect == isExpense ? AppColors.buttonTabActive : AppColors.buttonTabInactive,
+    style: TextButton.styleFrom(
+      foregroundColor: isSelect == isExpense
+          ? AppColors.buttonTabActive
+          : AppColors.buttonTabInactive,
+      side: BorderSide(
+        color: isSelect == isExpense
+            ? AppColors.buttonTabActive
+            : AppColors.buttonTabInactive, // 边框颜色
+        width: 1.5, // 边框宽度
       ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8), // 圆角
+      ),
+    ),
       child: Text(
         text,
         style: TextStyle(
@@ -113,7 +161,7 @@ class _NewPageState extends State<NewPage> {
               '￥',
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.grey[700],
+                color: AppColors.textSecondary,
               ),
             ),
           ],
@@ -175,20 +223,22 @@ class _NewPageState extends State<NewPage> {
     );
   }
 
-  Widget _buildSaveButton() {
-    return Consumer<BillData>(
+  Widget _buildSaveButton(String tableName) {
+    return Consumer<NewBillData>(
       builder: (context, billData, _) => FloatingActionButton(
         onPressed: () {
           billData.setSaveTime();
           print('保存数据: ${billData.bill}');
+          String tempTableName = tableName;
+          print('当前表: $tempTableName');
           if (widget.initialBill != null) {
             if (billData.bill.id != null) {
-              updateBill(billData.bill.id!, billData.bill);
+              updateBill(billData.bill.id!, billData.bill, tableName: tempTableName);
             } else {
               print('Error: Bill ID is null');
             }
           } else {
-            insertBill(billData.bill);
+            insertBill(billData.bill, tableName: tempTableName);
           }
           Navigator.pop(context, true);
         },
@@ -198,6 +248,7 @@ class _NewPageState extends State<NewPage> {
       ),
     );
   }
+
 }
 
 class BillListItem extends StatelessWidget {
@@ -220,7 +271,7 @@ class BillListItem extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ),
@@ -256,12 +307,12 @@ class BillItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    BillData billData = Provider.of<BillData>(context);
+    NewBillData billData = Provider.of<NewBillData>(context);
     bool isSelected = billData.bill.usefor == billItem[0]['usefor'];
     
     return Card(
       elevation: isSelected ? 4 : 1,
-      color: isSelected ? AppColors.cardSelected : AppColors.cardUnselected,
+      color: AppColors.pageBackground,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
@@ -305,7 +356,7 @@ class InputMoney extends StatefulWidget {
   const InputMoney({super.key});
 
   @override
-  _InputMoneyState createState() => _InputMoneyState();
+  State<InputMoney> createState() => _InputMoneyState();
 }
 
 class _InputMoneyState extends State<InputMoney> {
@@ -314,7 +365,7 @@ class _InputMoneyState extends State<InputMoney> {
   @override
   void initState() {
     super.initState();
-    BillData billData = Provider.of<BillData>(context, listen: false);
+    NewBillData billData = Provider.of<NewBillData>(context, listen: false);
     _controller = TextEditingController(
       text: billData.bill.money != 0.00
           ? billData.bill.money.toStringAsFixed(2)
@@ -330,7 +381,7 @@ class _InputMoneyState extends State<InputMoney> {
 
   @override
   Widget build(BuildContext context) {
-    BillData billData = Provider.of<BillData>(context);
+    NewBillData billData = Provider.of<NewBillData>(context);
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -370,7 +421,7 @@ class InputRemark extends StatefulWidget {
   const InputRemark({super.key});
 
   @override
-  _InputRemarkState createState() => _InputRemarkState();
+  State<InputRemark> createState() => _InputRemarkState();
 }
 
 class _InputRemarkState extends State<InputRemark> {
@@ -379,7 +430,7 @@ class _InputRemarkState extends State<InputRemark> {
   @override
   void initState() {
     super.initState();
-    BillData billData = Provider.of<BillData>(context, listen: false);
+    NewBillData billData = Provider.of<NewBillData>(context, listen: false);
     _controller = TextEditingController(
       text: billData.bill.remark != null && billData.bill.remark != ''
           ? billData.bill.remark
@@ -395,7 +446,7 @@ class _InputRemarkState extends State<InputRemark> {
 
   @override
   Widget build(BuildContext context) {
-    BillData billData = Provider.of<BillData>(context);
+    NewBillData billData = Provider.of<NewBillData>(context);
 
     return TextField(
       controller: _controller,
@@ -418,7 +469,7 @@ class DateSelect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    BillData billData = Provider.of<BillData>(context);
+    NewBillData billData = Provider.of<NewBillData>(context);
     
     return InkWell(
       borderRadius: BorderRadius.circular(8),
@@ -430,7 +481,7 @@ class DateSelect extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.calendar_today, size: 20, color: AppColors.iconCalendar),
+            Icon(Icons.calendar_today, size: 20, color: AppColors.buttonPrimary),
             const SizedBox(width: 8),
             Text(
               billData.bill.date.toLocal().toString().split(' ')[0],
@@ -448,57 +499,3 @@ class DateSelect extends StatelessWidget {
   }
 }
 
-class BillData extends ChangeNotifier {
-  late final Bill _bill;
-
-  BillData({Bill? initialBill})
-      : _bill = initialBill ??
-            Bill(
-              type: 'pay',
-              money: 0.00,
-              date: DateTime.now(),
-              savetime: DateTime.now(),
-              usefor: 'other',
-              source: '手动记账',
-            );
-
-  Bill get bill => _bill;
-  
-  void selectDate(BuildContext context) async {
-    DateTime? selectedDate = await DatePickerUtil.selectDate(
-      context: context,
-      initialDate: _bill.date,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (selectedDate != null && selectedDate != _bill.date) {
-      _bill.date = selectedDate;
-      notifyListeners();
-    }
-  }
-  
-  void setType(String type) {
-    _bill.type = type;
-    notifyListeners();
-  }
-  
-  void setUsefor(String usefor) {
-    _bill.usefor = usefor;
-    notifyListeners();
-  }
-  
-  void setMoney(double money) {
-    _bill.money = money;
-    notifyListeners();
-  }
-  
-  void setRemark(String remark) {
-    _bill.remark = remark;
-    notifyListeners();
-  }
-  
-  void setSaveTime() {
-    _bill.savetime = DateTime.now();
-    notifyListeners();
-  }
-}

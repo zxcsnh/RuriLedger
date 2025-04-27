@@ -25,8 +25,9 @@ class DatabaseHelper {
     // 打开或创建数据库
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade, // 新增：升级处理
     );
   }
 
@@ -45,73 +46,80 @@ class DatabaseHelper {
       )
     ''');
   }
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    await db.execute('''
+      CREATE TABLE bill_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tablename TEXT,
+        name TEXT,
+        savetime TEXT,
+        remark TEXT
+      )
+    ''');
+    await db.insert('bill_categories', {'tablename': 'bills', 'name': '主账单', 'savetime': DateTime.now().toIso8601String(), 'remark': ''});
+  }
+
 }
 
-Future<void> insertBill(Bill bill) async {
+Future<void> insertBill(Bill bill, {String tableName = 'bills'}) async {
   final db = await DatabaseHelper().database;
-  await db.insert('bills', bill.toInsertMap());
+  await db.insert(tableName, bill.toInsertMap());
 }
 
-Future<List<Bill>> getBills() async {
+Future<List<Bill>> getBills({String tableName = 'bills'}) async {
   final db = await DatabaseHelper().database;
-  final List<Map<String, Object?>> maps = await db.query('bills');
+  final List<Map<String, Object?>> maps = await db.query(tableName);
   return List<Bill>.from(maps.map((map) => Bill.fromMap(map)));
 }
 
-Future<List<Bill>> getDayBills(DateTime dateTime) async {
+Future<List<Bill>> getDayBills(DateTime dateTime, {String tableName = 'bills'}) async {
   final db = await DatabaseHelper().database;
 
-  // 格式化日期为 'YYYY-MM-DD'
   final String formattedDate = dateTime.toIso8601String().split('T').first;
 
-  // 查询指定日期的数据
   final List<Map<String, Object?>> maps = await db.query(
-    'bills',
+    tableName,
     where: "strftime('%Y-%m-%d', date) = ?",
     whereArgs: [formattedDate],
+    orderBy: 'date DESC',
   );
-
-  // 将查询结果转换为 Bill 对象列表
   return List<Bill>.from(maps.map((map) => Bill.fromMap(map)));
 }
 
-Future<List<BillSummary>> getMonthBills(DateTime dateTime) async {
+Future<List<BillSummary>> getMonthBills(DateTime dateTime, {String tableName = 'bills'}) async {
   final db = await DatabaseHelper().database;
 
-  // 格式化日期为 'YYYY-MM-DD'
-  final String formattedDate = dateTime.year.toString();
+  final String formattedYear = dateTime.year.toString();
 
-  // 查询指定日期的数据
   final List<Map<String, Object?>> maps = await db.rawQuery('''
     SELECT 
-      strftime('%m', date) AS month,  -- 按年月分组
-      SUM(money) AS money,           -- 计算总金额
+      strftime('%m', date) AS month,
+      SUM(money) AS money,
       type,
       usefor
-    FROM bills
-    WHERE strftime('%Y', date) = ?       -- 查询指定年份的数据
-    GROUP BY month,type,usefor                       -- 按月份分组
+    FROM $tableName
+    WHERE strftime('%Y', date) = ?
+    GROUP BY month, type, usefor
     ORDER BY month ASC
-  ''', [formattedDate]);
+  ''', [formattedYear]);
 
-  // 将查询结果转换为 Bill 对象列表
   return List<BillSummary>.from(maps.map((map) => BillSummary.fromMap(map)));
 }
 
-Future<void> updateBill(int id, Bill bill) async {
+Future<void> updateBill(int id, Bill bill, {String tableName = 'bills'}) async {
   final db = await DatabaseHelper().database;
   await db.update(
-    'bills',
+    tableName,
     bill.toMap(),
     where: 'id = ?',
     whereArgs: [id],
   );
 }
 
-Future<void> deleteBill(int id) async {
+Future<void> deleteBill(int id, {String tableName = 'bills'}) async {
   final db = await DatabaseHelper().database;
   await db.delete(
-    'bills',
+    tableName,
     where: 'id = ?',
     whereArgs: [id],
   );
@@ -120,13 +128,18 @@ Future<void> deleteBill(int id) async {
 Future<void> deleteTable(String tableName) async {
   final db = await DatabaseHelper().database;
   await db.execute('DROP TABLE IF EXISTS $tableName');
+  await db.delete(
+    'bill_categories',
+    where: 'tablename = ?',
+    whereArgs: [tableName],
+  );
   print('表 $tableName 已删除');
 }
-Future<void> createTable() async {
-  final db = await DatabaseHelper().database;
 
-  await db.execute('''
-      CREATE TABLE bills (
+Future<void> createTable(String tableName, String name, String remark) async {
+  final db = await DatabaseHelper().database;
+  String sql = '''
+    CREATE TABLE IF NOT EXISTS $tableName (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT,
         money REAL,
@@ -135,8 +148,45 @@ Future<void> createTable() async {
         usefor TEXT,
         source TEXT,
         remark TEXT
-      )
-    ''');
-
+    )
+  ''';
+  await db.execute(sql);
+  await db.insert('bill_categories', {'tablename': tableName, 'name': name, 'savetime': DateTime.now().toIso8601String(), 'remark': remark});
   print('表已创建');
+}
+
+Future<List<BillCategory>> getTableInfo() async {
+  print("获取表数据");
+  final db = await DatabaseHelper().database;
+  final List<Map<String, Object?>> maps = await db.query("bill_categories");
+  print(maps.length);
+  return List<BillCategory>.from(maps.map((map) => BillCategory.fromMap(map)));
+}
+
+Future<List<double>> getSumBills({String tableName = 'bills'}) async {
+  final db = await DatabaseHelper().database;
+
+  final List<Map<String, Object?>> maps = await db.rawQuery('''
+    SELECT 
+      SUM(money) AS money,
+      type
+    FROM $tableName
+    GROUP BY type
+  ''');
+
+  double pay = 0.0;
+  double income = 0.0;
+
+  for (final map in maps) {
+    final type = map['type']?.toString();
+    final money = (map['money'] as num?)?.toDouble() ?? 0.0;
+
+    if (type == 'pay') {
+      pay += money;
+    } else {
+      income += money;
+    }
+  }
+
+  return [pay, income];
 }

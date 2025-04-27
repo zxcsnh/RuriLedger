@@ -87,3 +87,25 @@ class BillSummary{
     );
   }
 }
+class BillCategory{
+  String tablename;
+  String name;
+  DateTime savetime;
+  String? remark;
+  // String source;
+
+  BillCategory({
+    required this.tablename,
+    required this.name,
+    required this.savetime,
+    this.remark,
+  });
+  factory BillCategory.fromMap(Map<String, dynamic> map) {
+    return BillCategory(
+      tablename: map['tablename'] as String,
+      name: map['name'] as String,
+      savetime: DateTime.parse(map['savetime'] as String),
+      remark: map['remark'] != null ? map['remark'] as String : null,
+    );
+  }
+}
