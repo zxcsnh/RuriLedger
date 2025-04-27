@@ -396,7 +396,7 @@ class _BillItemState extends State<BillItem> {
             onPressed: () async {
               Navigator.pop(context, true);
             },
-            child: const Text('确认', style: TextStyle(color: Colors.red)),
+            child: const Text('确认', style: TextStyle(color: AppColors.buttonDanger)),
           ),
         ],
       ),

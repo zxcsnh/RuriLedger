@@ -11,7 +11,7 @@ class NewBillData extends ChangeNotifier {
               money: 0.00,
               date: DateTime.now(),
               savetime: DateTime.now(),
-              usefor: 'other',
+              usefor: '',
               source: '手动记账',
             );
 

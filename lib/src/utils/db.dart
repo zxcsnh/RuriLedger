@@ -135,7 +135,15 @@ Future<void> deleteTable(String tableName) async {
   );
   print('表 $tableName 已删除');
 }
-
+Future<void> updateTable(String tableName, String name, String remark) async {
+  final db = await DatabaseHelper().database;
+  await db.update(
+    'bill_categories',
+    {'tablename': tableName, 'name': name, 'savetime': DateTime.now().toIso8601String(), 'remark': remark},
+    where: 'tablename = ?',
+    whereArgs: [tableName],
+  );
+}
 Future<void> createTable(String tableName, String name, String remark) async {
   final db = await DatabaseHelper().database;
   String sql = '''

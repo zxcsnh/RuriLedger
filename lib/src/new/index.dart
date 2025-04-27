@@ -228,6 +228,19 @@ class _NewPageState extends State<NewPage> {
       builder: (context, billData, _) => FloatingActionButton(
         onPressed: () {
           billData.setSaveTime();
+          if(billData.bill.usefor == "") {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("用途不能为空")),
+            );
+            return;
+          }
+          billData.bill.money = billData.bill.money.abs();
+          if(billData.bill.money == 0.00) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("请输入有效数字")),
+            );
+            return;
+          }
           print('保存数据: ${billData.bill}');
           String tempTableName = tableName;
           print('当前表: $tempTableName');

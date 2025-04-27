@@ -24,6 +24,7 @@ class AppColors {
   // 按钮颜色
   static const Color buttonPrimary = Colors.blue; // 主按钮
   static const Color buttonSecondary = Colors.grey; // 次按钮
+  static const Color buttonThirdary = Colors.orange; // 第三按钮
   static const Color buttonDanger = Colors.red; // 危险按钮
   static const Color buttonTabActive = Colors.blue; // 激活的标签按钮
   static const Color buttonTabInactive = Colors.grey; // 未激活的标签按钮
@@ -41,7 +42,7 @@ class AppColors {
   // 边框颜色
   static const Color border = Color(0xFF90CAF9); // 蓝色边框
   static const Color borderLight = Color(0xFFE0E0E0); // 浅灰边框
-  static const Color borderSelected = Colors.blue; // 选中边框
+  static const Color borderSelected = Colors.orange; // 选中边框
   static const Color borderUnselected = Color(0xFFE0E0E0); // 未选中边框
 
   // 分割线颜色
