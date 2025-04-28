@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:myapp/src/utils/model.dart';
 // import 'package:myapp/src/utils/db.dart';
 // import 'package:myapp/src/utils/DatePickerUtil.dart';
-import 'package:myapp/src/utils/app_colors.dart';
+import 'package:myapp/src/utils/appColors.dart';
 // import 'package:myapp/src/categories/index.dart';
 import 'package:myapp/src/state/categories.dart';
 import 'package:myapp/src/state/monthstate.dart';
@@ -267,13 +267,13 @@ class MonthBillItem extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
-                    '${bills.length}笔',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textHint,
-                    ),
-                  ),
+                  // Text(
+                  //   '${bills.length}笔',
+                  //   style: TextStyle(
+                  //     fontSize: 14,
+                  //     color: AppColors.textHint,
+                  //   ),
+                  // ),
                 ],
               ),
               const SizedBox(height: 12),

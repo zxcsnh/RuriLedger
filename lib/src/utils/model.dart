@@ -92,6 +92,8 @@ class BillCategory{
   String name;
   DateTime savetime;
   String? remark;
+  double income = 0.00;
+  double pay = 0.00;
   // String source;
 
   BillCategory({

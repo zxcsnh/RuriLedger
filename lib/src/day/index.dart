@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/utils/BillListData.dart';
+import 'package:myapp/src/utils/billListData.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/src/new/index.dart';
 // import 'package:myapp/src/month/index.dart';
 import 'package:myapp/src/utils/model.dart';
 import 'package:myapp/src/utils/db.dart';
 // import 'package:myapp/src/utils/DatePickerUtil.dart';
-import 'package:myapp/src/utils/app_colors.dart';
+import 'package:myapp/src/utils/appColors.dart';
 // import 'package:myapp/src/categories/index.dart';
 import 'package:myapp/src/state/daystate.dart';
 import 'package:myapp/src/state/categories.dart';
@@ -293,11 +293,14 @@ class _BillItemState extends State<BillItem> {
                         if (widget.bill.remark?.isNotEmpty ?? false)
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
-                            child: Text(
-                              widget.bill.remark!,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textHint,
+                            child: SingleChildScrollView( // 滚动视图
+                              scrollDirection: Axis.horizontal,
+                              child: Text(
+                                widget.bill.remark!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textHint,
+                                ),
                               ),
                             ),
                           ),
@@ -330,6 +333,14 @@ class _BillItemState extends State<BillItem> {
         children: [
           const Divider(height: 1),
           const SizedBox(height: 12),
+          Text(
+            '备注: ${widget.bill.remark ?? '无'}',
+            style: TextStyle(color: AppColors.textHint, fontSize: 13),
+            maxLines: null,         // 不限制行数（可以无限换行）
+            softWrap: true,         // 自动换行
+            overflow: TextOverflow.visible, // 显示完整文本
+          ),
+          const SizedBox(height: 4),
           Text(
             '来源: ${widget.bill.source}',
             style: TextStyle(color: AppColors.textHint, fontSize: 13),

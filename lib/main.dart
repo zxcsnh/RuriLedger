@@ -1,7 +1,7 @@
 // 主入口文件 - 记账应用
 import 'package:flutter/material.dart';
 import 'package:myapp/src/utils/db.dart';
-import 'package:myapp/src/utils/BillListData.dart';
+import 'package:myapp/src/utils/billListData.dart';
 import 'package:myapp/src/app/app.dart';
 
 void main() {

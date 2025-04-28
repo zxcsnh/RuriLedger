@@ -9,8 +9,15 @@ class BillCategories extends ChangeNotifier {
   List<BillCategory> get billCategoryList => _billCategoryList;
   String get tablename => _tablename;
   String get name => _name;
+
   Future<void> fetchBillTables() async {
     _billCategoryList = await getTableInfo();
+    for(var bill in _billCategoryList){
+      List<double> item = await getSumBills(tableName: bill.tablename);
+      bill.pay = item[0];
+      bill.income = item[1];
+    }
+    
     notifyListeners();
   }
   void setTable(tableName,name){

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/src/utils/model.dart';
-import 'package:myapp/src/utils/DatePickerUtil.dart';
+import 'package:myapp/src/utils/datePickerUtil.dart';
 class NewBillData extends ChangeNotifier {
   late final Bill _bill;
 

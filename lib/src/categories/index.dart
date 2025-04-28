@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:myapp/src/utils/model.dart';
 import 'package:myapp/src/utils/db.dart';
 // import 'package:myapp/src/utils/DatePickerUtil.dart';
-import 'package:myapp/src/utils/app_colors.dart';
+import 'package:myapp/src/utils/appColors.dart';
 // import 'package:myapp/src/categories/index.dart';
 import 'dart:math';
 import 'package:myapp/src/state/categories.dart';
 import 'package:myapp/src/state/refresh.dart';
+// import 'package:myapp/src/utils/marqueeWidget.dart';
+import 'package:marquee/marquee.dart';
 String getRandomString(int length) {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   Random rand = Random.secure();  // 用 secure() 版本随机性更好
@@ -193,12 +195,18 @@ class _HeaderCardState extends State<HeaderCard> {
                                 size: 16,
                               ),
                               const SizedBox(width: 8), // 图标与文字之间的间距
-                              Text(
-                                name,
-                                style: TextStyle(
-                                  fontSize: 16, // 调整字体大小
-                                  fontWeight: FontWeight.w600, // 使用半粗体
-                                  color: AppColors.textPrimary,
+                              SizedBox(
+                                width: 80,
+                                height: 20,
+                                child: Marquee(
+                                  text: name,
+                                  style: const TextStyle(
+                                    fontSize: 16, // 调整字体大小
+                                    fontWeight: FontWeight.w600, // 使用半粗体
+                                    color: AppColors.textPrimary,
+                                  ),
+                                  blankSpace: 50.0,
+                                  velocity: 50.0,
                                 ),
                               ),
                             ],
@@ -313,11 +321,6 @@ class _HeaderCardState extends State<HeaderCard> {
         );
       },
     );
-    // ).then((_) {
-    //   // 对话框关闭时销毁控制器
-    //   amountController.dispose();
-    //   descriptionController.dispose();
-    // });
   }
 }
 
@@ -339,109 +342,90 @@ class _CategoriesItemState extends State<CategoriesItem> {
   bool isExpanded = false; // 是否展开
 
   @override
-  void initState() {
-    super.initState();
-    result = loadData(); // 延迟加载数据
-  }
-
-  Future<List<double>> loadData() async {
-    return await getSumBills(tableName: widget.billInfoItem.tablename); // 获取账单数据
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<double>>(
-      future: result,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // 显示加载状态
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          // 错误处理
-          return Text('加载失败: ${snapshot.error}');
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          // 处理没有数据的情况
-          return Text('没有数据');
-        } else {
-          final income = snapshot.data![1];
-          final expense = snapshot.data![0];
-          final balance = income - expense;
+    final income = widget.billInfoItem.income;
+    final expense = widget.billInfoItem.pay;
+    final balance = income - expense;
 
-          return Card(
-            color: AppColors.expandedCardBackground,
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: widget.billInfoItem.name == Provider.of<BillCategories>(context, listen: false).name ? AppColors.borderSelected : AppColors.border, 
-                width: 1
-              ),
-            ),
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  isExpanded = !isExpanded; // 切换展开状态
-                });
-              },
-              borderRadius: BorderRadius.circular(12),
+    return Card(
+      color: AppColors.expandedCardBackground,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: widget.billInfoItem.name == Provider.of<BillCategories>(context, listen: false).name ? AppColors.borderSelected : AppColors.border, 
+          width: 1
+        ),
+      ),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            isExpanded = !isExpanded; // 切换展开状态
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SingleChildScrollView( // 滚动视图
-                              scrollDirection: Axis.horizontal,
-                              child: Text(
-                                widget.billInfoItem.name,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: 150,
+                        child: SingleChildScrollView( // 滚动视图
+                          scrollDirection: Axis.horizontal,
+                          child: Text(
+                            widget.billInfoItem.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
-                            if(widget.billInfoItem.remark != null && widget.billInfoItem.remark != "")
-                              SingleChildScrollView( // 滚动视图
-                                scrollDirection: Axis.horizontal,
-                                child: Text(
-                                  '${widget.billInfoItem.remark}',
-                                  style: TextStyle(color: AppColors.textHint, fontSize: 13),
-                                ),
-                              ),
-                          ],
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildAmountIndicator('收入', income, AppColors.income),
-                            _buildAmountIndicator('支出', expense, AppColors.expense),
-                            _buildAmountIndicator('结余', balance,
-                                balance >= 0 ? AppColors.balancePositive : AppColors.balanceNegative),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        LinearProgressIndicator(
-                          value: expense + income > 0 ? income / (expense + income) : 1,
-                          backgroundColor: AppColors.progressBackground,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.progressValue),
-                        ),
-                      ],
-                    ),
+                      ),
+                      if(widget.billInfoItem.remark != null && widget.billInfoItem.remark != "")
+                        SizedBox(
+                          width: 150,
+                          child: SingleChildScrollView( // 滚动视图
+                            scrollDirection: Axis.horizontal,
+                            child: Text(
+                              '${widget.billInfoItem.remark}',
+                              // "111777777777777777777777777777777777777777777",
+                              style: TextStyle(color: AppColors.textHint, fontSize: 13),
+                            ),
+                          ),
+                        )
+                    ],
                   ),
-                  if (isExpanded) // 根据状态决定是否显示内容
-                    _buildExpandedContent(),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildAmountIndicator('收入', income, AppColors.income),
+                      _buildAmountIndicator('支出', expense, AppColors.expense),
+                      _buildAmountIndicator('结余', balance,
+                          balance >= 0 ? AppColors.balancePositive : AppColors.balanceNegative),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    value: expense + income > 0 ? income / (expense + income) : 1,
+                    backgroundColor: AppColors.progressBackground,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.progressValue),
+                  ),
                 ],
               ),
             ),
-          );
-        }
-      },
+            if (isExpanded) // 根据状态决定是否显示内容
+              _buildExpandedContent(),
+          ],
+        ),
+      ),
     );
   }
   Widget _buildExpandedContent() {
@@ -452,12 +436,12 @@ class _CategoriesItemState extends State<CategoriesItem> {
         children: [
           const Divider(height: 1),
           const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Text(
-              '备注: ${widget.billInfoItem.remark}',
-              style: TextStyle(color: AppColors.textHint, fontSize: 13),
-            ),
+          Text(
+            '备注: ${widget.billInfoItem.remark}',
+            maxLines: null,         // 不限制行数（可以无限换行）
+            softWrap: true,         // 自动换行
+            overflow: TextOverflow.visible,  // 内容超出时如何处理（比如 visible、ellipsis、fade）
+            style: TextStyle(color: AppColors.textHint, fontSize: 13),
           ),
           const SizedBox(height: 4),
           Text(

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:marquee/marquee.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/src/utils/model.dart';
 import 'package:myapp/src/utils/db.dart';
 // import 'package:myapp/src/utils/DatePickerUtil.dart';
-import 'package:myapp/src/utils/BillListData.dart';
-import 'package:myapp/src/utils/app_colors.dart';  // 添加这行导入
+import 'package:myapp/src/utils/billListData.dart';
+import 'package:myapp/src/utils/appColors.dart';  // 添加这行导入
 // import 'package:myapp/src/categories/index.dart';
 import 'package:myapp/src/state/newstate.dart';
 // import 'package:myapp/src/state/categories.dart';
@@ -78,14 +79,30 @@ class _NewPageState extends State<NewPage> {
                             size: 16,
                           ),
                           const SizedBox(width: 8), // 图标与文字之间的间距
-                          Text(
-                            widget.name ?? '主账单',
-                            style: TextStyle(
-                              fontSize: 16, // 调整字体大小
-                              fontWeight: FontWeight.w600, // 使用半粗体
-                              color: AppColors.textPrimary,
-                            ),
+                          SizedBox(
+                            width: 60, // 设置文字宽度
+                            child: Marquee(
+                              text: widget.name ?? '主账单',
+                              style: TextStyle(
+                                fontSize: 16, // 调整字体大小
+                                fontWeight: FontWeight.w600, // 使用半粗体
+                                color: AppColors.textPrimary,
+                              ),
+                              // scrollAxis: Axis.horizontal,
+                              // crossAxisAlignment: CrossAxisAlignment.start,
+                              blankSpace: 40.0,
+                              velocity: 40.0,
+                              // pauseAfterRound: const Duration(seconds: 1),
+                            )
                           ),
+                          // Text(
+                          //   widget.name ?? '主账单',
+                          //   style: TextStyle(
+                          //     fontSize: 16, // 调整字体大小
+                          //     fontWeight: FontWeight.w600, // 使用半粗体
+                          //     color: AppColors.textPrimary,
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),

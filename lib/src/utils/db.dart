@@ -33,6 +33,7 @@ class DatabaseHelper {
 
   // 数据库创建时的回调
   Future<void> _onCreate(Database db, int version) async {
+    // 主账单表
     await db.execute('''
       CREATE TABLE bills (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,6 +46,18 @@ class DatabaseHelper {
         remark TEXT
       )
     ''');
+    // 账单分类表
+    await db.execute('''
+      CREATE TABLE bill_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tablename TEXT,
+        name TEXT,
+        savetime TEXT,
+        remark TEXT
+      )
+    ''');
+    // 插入默认数据
+    await db.insert('bill_categories', {'tablename': 'bills', 'name': '主账单', 'savetime': DateTime.now().toIso8601String(), 'remark': ''});
   }
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     await db.execute('''
@@ -181,10 +194,8 @@ Future<List<double>> getSumBills({String tableName = 'bills'}) async {
     FROM $tableName
     GROUP BY type
   ''');
-
   double pay = 0.0;
   double income = 0.0;
-
   for (final map in maps) {
     final type = map['type']?.toString();
     final money = (map['money'] as num?)?.toDouble() ?? 0.0;
@@ -195,6 +206,5 @@ Future<List<double>> getSumBills({String tableName = 'bills'}) async {
       income += money;
     }
   }
-
   return [pay, income];
 }
