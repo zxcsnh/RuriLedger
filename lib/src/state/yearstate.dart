@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/src/utils/model.dart';
 import 'package:myapp/src/utils/datePickerUtil.dart';
 import 'package:myapp/src/utils/db.dart';
-class MonthBillList extends ChangeNotifier {
+class YearBillList extends ChangeNotifier {
   List<BillSummary> _bills = [];
   DateTime _currentDate = DateTime.now();
 
@@ -17,7 +17,7 @@ class MonthBillList extends ChangeNotifier {
 
   Future<void> fetchBills({String tableName = "bills"}) async {
     print('获取数据');
-    _bills = await getMonthBills(_currentDate, tableName: tableName);
+    _bills = await getYearBills(_currentDate, tableName: tableName);
     // 创建月份分组 Map：1~12 => List
     Map<String, List<BillSummary>> groupedBills = {};
     totalIncome = 0.0;

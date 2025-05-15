@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/src/utils/model.dart';
 import 'package:myapp/src/utils/datePickerUtil.dart';
 import 'package:myapp/src/utils/db.dart';
-class DayBillList extends ChangeNotifier {
+class MonthBillList extends ChangeNotifier {
   List<Bill> _bills = [];
   DateTime _currentDate = DateTime.now();
 
@@ -10,7 +10,7 @@ class DayBillList extends ChangeNotifier {
   DateTime get currentDate => _currentDate;
 
   Future<void> fetchBills({String tableName = "bills"}) async {
-    _bills = await getDayBills(_currentDate, tableName: tableName);
+    _bills = await getMonthBills(_currentDate, tableName: tableName);
     notifyListeners();
   }
 

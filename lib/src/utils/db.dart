@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'model.dart';
+import 'package:intl/intl.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -59,6 +60,7 @@ class DatabaseHelper {
     // 插入默认数据
     await db.insert('bill_categories', {'tablename': 'bills', 'name': '主账单', 'savetime': DateTime.now().toIso8601String(), 'remark': ''});
   }
+
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     await db.execute('''
       CREATE TABLE bill_categories (
@@ -85,21 +87,20 @@ Future<List<Bill>> getBills({String tableName = 'bills'}) async {
   return List<Bill>.from(maps.map((map) => Bill.fromMap(map)));
 }
 
-Future<List<Bill>> getDayBills(DateTime dateTime, {String tableName = 'bills'}) async {
+Future<List<Bill>> getMonthBills(DateTime dateTime, {String tableName = 'bills'}) async {
   final db = await DatabaseHelper().database;
-
-  final String formattedDate = dateTime.toIso8601String().split('T').first;
-
+  // 格式化日期为 "yyyy-MM"
+  final String formattedDate = DateFormat('yyyy-MM').format(dateTime);
   final List<Map<String, Object?>> maps = await db.query(
     tableName,
-    where: "strftime('%Y-%m-%d', date) = ?",
+    where: "strftime('%Y-%m', date) = ?",
     whereArgs: [formattedDate],
     orderBy: 'date DESC',
   );
   return List<Bill>.from(maps.map((map) => Bill.fromMap(map)));
 }
 
-Future<List<BillSummary>> getMonthBills(DateTime dateTime, {String tableName = 'bills'}) async {
+Future<List<BillSummary>> getYearBills(DateTime dateTime, {String tableName = 'bills'}) async {
   final db = await DatabaseHelper().database;
 
   final String formattedYear = dateTime.year.toString();
