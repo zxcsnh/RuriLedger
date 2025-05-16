@@ -5,13 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // 应用页面导入
-import 'package:myapp/src/day/index.dart';
+import 'package:myapp/src/month/index.dart';
 // import 'package:myapp/src/utils/db.dart';
 import 'package:myapp/src/new/index.dart';
-import 'package:myapp/src/month/index.dart';
+import 'package:myapp/src/year/index.dart';
 // import 'package:myapp/src/utils/BillListData.dart';
 import 'package:myapp/src/utils/appColors.dart';
 import 'package:myapp/src/categories/index.dart';
+import 'package:myapp/src/setting/index.dart';
 
 // 状态管理导入
 // import 'package:myapp/src/state/daystate.dart';
@@ -90,10 +91,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           child: IndexedStack(
             index: _currentIndex,
             children: const [
-              DayPage(),      // 日账单页面
+              MonthPage(),
               Placeholder(),  // 占位页面（实际跳转到记账页）
-              MonthPage(),    // 月账单页面
-              CategoriesPage(), // 分类页面
+              YearPage(),
+              CategoriesPage(),
+              Setting(),
             ],
           ),
         ),
@@ -109,7 +111,13 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             ],
           ),
           child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
             backgroundColor: AppColors.appBarBackground,
+            elevation: 8,
+            selectedItemColor: AppColors.iconSelected,
+            unselectedItemColor: AppColors.iconUnselected,
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
             currentIndex: _currentIndex,
             onTap: (index) {
               if (index == 1) {
@@ -137,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),
                 activeIcon: Icon(Icons.home),
-                label: '日账',
+                label: '月账',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.add_circle_outline),
@@ -147,13 +155,18 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               BottomNavigationBarItem(
                 icon: Icon(Icons.bar_chart_outlined),
                 activeIcon: Icon(Icons.bar_chart),
-                label: '月账',
+                label: '年账',
               ),
               BottomNavigationBarItem(
                 // 优化建议：使用更符合"其他账本"含义的图标
                 icon: Icon(Icons.category_outlined),
                 activeIcon: Icon(Icons.category),
                 label: '其他账本',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings_outlined),
+                activeIcon: Icon(Icons.settings),
+                label: '设置',
               ),
             ],
           ),

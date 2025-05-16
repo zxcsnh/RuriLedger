@@ -378,7 +378,7 @@ class _CategoriesItemState extends State<CategoriesItem> {
                       SizedBox(
                         width: 150,
                         child: SingleChildScrollView( // 滚动视图
-                          scrollDirection: Axis.horizontal,
+                          scrollDirection: Axis.horizontal, 
                           child: Text(
                             widget.billInfoItem.name,
                             style: const TextStyle(

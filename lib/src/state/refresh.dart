@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:myapp/src/state/daystate.dart';
-import 'package:myapp/src/state/monthstate.dart';
+import 'package:myapp/src/state/yearstate.dart';
 import 'package:myapp/src/state/categories.dart';
 import 'package:provider/provider.dart';
 
@@ -14,8 +14,8 @@ class RefreshState{
     tableName = Provider.of<BillCategories>(context, listen: false).tablename;
     name = Provider.of<BillCategories>(context, listen: false).name;
     stateList = [
-      Provider.of<DayBillList>(context, listen: false),
       Provider.of<MonthBillList>(context, listen: false),
+      Provider.of<YearBillList>(context, listen: false),
     ];
   }
 

@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
-// import 'package:myapp/src/utils/BillListData.dart';
+import 'package:myapp/src/utils/billListData.dart';
 import 'package:provider/provider.dart';
+import 'package:myapp/src/new/index.dart';
+// import 'package:myapp/src/month/index.dart';
+// import 'package:myapp/src/year/index.dart';
 import 'package:myapp/src/utils/model.dart';
-// import 'package:myapp/src/utils/db.dart';
+import 'package:myapp/src/utils/db.dart';
 // import 'package:myapp/src/utils/DatePickerUtil.dart';
 import 'package:myapp/src/utils/appColors.dart';
 // import 'package:myapp/src/categories/index.dart';
+import 'package:myapp/src/state/daystate.dart';
 import 'package:myapp/src/state/categories.dart';
-import 'package:myapp/src/state/monthstate.dart';
-
+// import 'package:myapp/src/state/monthstate.dart';
+import 'package:myapp/src/state/refresh.dart';
 class MonthPage extends StatefulWidget {
   const MonthPage({super.key});
   @override
@@ -18,9 +22,11 @@ class MonthPage extends StatefulWidget {
 class _MonthPageState extends State<MonthPage> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-  
+
   void refresh() {
-    String tempTableName = Provider.of<BillCategories>(context, listen: false).tablename;
+    String tempTableName = Provider.of<BillCategories>(context).tablename;
+    // Provider.of<BillList>(context, listen: false).fetchBills(tableName: tempTableName);
+    // Provider.of<MonthlyBillSummary>(context, listen: false).fetchBills(tableName: tempTableName);
     Provider.of<MonthBillList>(context).fetchBills(tableName: tempTableName);
   }
 
@@ -46,7 +52,15 @@ class HeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final billList = Provider.of<MonthBillList>(context);
-    
+    final income = billList.bills
+        .where((bill) => bill.type == "income")
+        .map((bill) => bill.money)
+        .fold(0.0, (a, b) => a + b);
+    final expense = billList.bills
+        .where((bill) => bill.type == "pay")
+        .map((bill) => bill.money)
+        .fold(0.0, (a, b) => a + b);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -72,7 +86,7 @@ class HeaderCard extends StatelessWidget {
                   InkWell(
                     onTap: () => billList.selectDate(context),
                     child: Text(
-                      '${billList.currentDate.year}年',
+                      '${billList.currentDate.year}年${billList.currentDate.month}月',
                       style: TextStyle(
                         fontSize: 16,
                         color: AppColors.primary,
@@ -89,7 +103,7 @@ class HeaderCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${billList.billsByMonth.length}个月',
+                  '${billList.bills.length}笔',
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
@@ -102,12 +116,9 @@ class HeaderCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildAmountCard('总收入', billList.totalIncome, AppColors.income),
-              _buildAmountCard('总支出', billList.totalPay, AppColors.expense),
-              _buildAmountCard('结余', billList.totalIncome - billList.totalPay, 
-                  (billList.totalIncome - billList.totalPay) >= 0 
-                      ? AppColors.balancePositive 
-                      : AppColors.balanceNegative),
+              _buildAmountCard('收入', income, Colors.green),
+              _buildAmountCard('支出', expense, Colors.red),
+              _buildAmountCard('结余', income - expense, Colors.blue),
             ],
           ),
         ],
@@ -120,7 +131,7 @@ class HeaderCard extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             color: AppColors.textPrimary,
           ),
@@ -172,8 +183,9 @@ class _BillCardState extends State<BillCard> {
 
   @override
   Widget build(BuildContext context) {
-    final billList = Provider.of<MonthBillList>(context);
     final billInfo = Provider.of<BillCategories>(context);
+    final billList = Provider.of<MonthBillList>(context);
+
     return Stack(
       children: [
         RefreshIndicator(
@@ -185,17 +197,10 @@ class _BillCardState extends State<BillCard> {
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final month = billList.billsByMonth[index].key;
-                    final bills = billList.billsByMonth[index].value;
-                    return MonthBillItem(
-                      month: month, 
-                      bills: bills,
-                      onTap: () {
-                        // 可以添加点击月份跳转到日详情页面的逻辑
-                      },
-                    );
+                    final bill = billList.bills[index];
+                    return BillItem(bill: bill);
                   },
-                  childCount: billList.billsByMonth.length,
+                  childCount: billList.bills.length,
                 ),
               ),
             ],
@@ -207,7 +212,7 @@ class _BillCardState extends State<BillCard> {
             right: 20,
             child: FloatingActionButton(
               mini: true,
-              backgroundColor: AppColors.background,
+              backgroundColor: AppColors.fabBackground,
               onPressed: () {
                 _scrollController.animateTo(
                   0,
@@ -215,7 +220,7 @@ class _BillCardState extends State<BillCard> {
                   curve: Curves.easeOut,
                 );
               },
-              child: Icon(Icons.arrow_upward, color: AppColors.primary),
+              child: Icon(Icons.arrow_upward, color: AppColors.iconSelected),
             ),
           ),
       ],
@@ -223,23 +228,21 @@ class _BillCardState extends State<BillCard> {
   }
 }
 
-class MonthBillItem extends StatelessWidget {
-  final String month;
-  final List<BillSummary> bills;
-  final VoidCallback onTap;
+class BillItem extends StatefulWidget {
+  final Bill bill;
 
-  const MonthBillItem({
-    super.key,
-    required this.month,
-    required this.bills,
-    required this.onTap,
-  });
+  const BillItem({super.key, required this.bill});
 
   @override
+  State<BillItem> createState() => _BillItemState();
+}
+
+class _BillItemState extends State<BillItem> {
+  @override
   Widget build(BuildContext context) {
-    final income = bills.where((b) => b.type == 'income').fold(0.0, (sum, b) => sum + b.money);
-    final expense = bills.where((b) => b.type == 'pay').fold(0.0, (sum, b) => sum + b.money);
-    final balance = income - expense;
+    final icon = useforToIcon[widget.bill.usefor] ?? Icons.monetization_on;
+    final name = useforToName[widget.bill.usefor] ?? widget.bill.usefor;
+    final isIncome = widget.bill.type == 'income';
 
     return Card(
       color: AppColors.expandedCardBackground,
@@ -251,75 +254,184 @@ class MonthBillItem extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        onTap: () {
+          setState(() {
+            widget.bill.isExpanded = !widget.bill.isExpanded;
+          });
+        },
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
                 children: [
-                  Text(
-                    '$month月',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isIncome
+                          ? AppColors.income.withValues(alpha: 0.1)
+                          : AppColors.expense.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: isIncome ? AppColors.income : AppColors.expense,
+                      size: 20,
                     ),
                   ),
-                  // Text(
-                  //   '${bills.length}笔',
-                  //   style: TextStyle(
-                  //     fontSize: 14,
-                  //     color: AppColors.textHint,
-                  //   ),
-                  // ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (widget.bill.remark?.isNotEmpty ?? false)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: SingleChildScrollView( // 滚动视图
+                              scrollDirection: Axis.horizontal,
+                              child: Text(
+                                widget.bill.remark!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textHint,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${isIncome ? '+' : '-'}${widget.bill.money.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isIncome ? AppColors.income : AppColors.expense,
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildAmountIndicator('收入', income, AppColors.income),
-                  _buildAmountIndicator('支出', expense, AppColors.expense),
-                  _buildAmountIndicator('结余', balance, 
-                      balance >= 0 ? AppColors.balancePositive : AppColors.balanceNegative),
-                ],
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: expense+income > 0 ? income / (expense+income) : 1,
-                backgroundColor: AppColors.progressBackground,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.progressValue),
-              ),
-            ],
-          ),
+            ),
+            if (widget.bill.isExpanded) _buildExpandedContent(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildAmountIndicator(String label, double amount, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textHint,
+  Widget _buildExpandedContent() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          Text(
+            '备注: ${widget.bill.remark ?? '无'}',
+            style: TextStyle(color: AppColors.textHint, fontSize: 13),
+            maxLines: null,         // 不限制行数（可以无限换行）
+            softWrap: true,         // 自动换行
+            overflow: TextOverflow.visible, // 显示完整文本
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          amount.toStringAsFixed(2),
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color,
+          const SizedBox(height: 4),
+          Text(
+            '来源: ${widget.bill.source}',
+            style: TextStyle(color: AppColors.textHint, fontSize: 13),
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            '时间: ${widget.bill.date.toLocal().toString().substring(0, 16)}',
+            style: TextStyle(color: AppColors.textHint, fontSize: 13),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.buttonDanger,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                onPressed: _showDeleteDialog,
+                child: const Row(
+                  children: [
+                    Icon(Icons.delete_outline, size: 18),
+                    SizedBox(width: 4),
+                    Text('删除'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.buttonPrimary,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                onPressed: _navigateToEditPage,
+                child: const Row(
+                  children: [
+                    Icon(Icons.edit_outlined, size: 18),
+                    SizedBox(width: 4),
+                    Text('编辑'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
+  }
+
+  void _showDeleteDialog() {
+    RefreshState refresh = RefreshState();
+    refresh.getState(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('确认删除'),
+        content: const Text('确定要删除这条账单记录吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context, true);
+            },
+            child: const Text('确认', style: TextStyle(color: AppColors.buttonDanger)),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed == true) {
+        deleteBill(widget.bill.id!,tableName: refresh.tableName);
+        refresh.refreshBills();
+      }
+    });
+  }
+
+  void _navigateToEditPage() {
+    RefreshState refresh = RefreshState();
+    refresh.getState(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NewPage(initialBill: widget.bill, tableName: refresh.tableName, name: refresh.name,),
+      ),
+    ).then((value) {
+      if (value == true) {
+        refresh.refreshBills();
+      }
+    });
   }
 }
