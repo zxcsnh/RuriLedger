@@ -12,6 +12,7 @@ import 'package:myapp/src/year/index.dart';
 // import 'package:myapp/src/utils/BillListData.dart';
 import 'package:myapp/src/utils/appColors.dart';
 import 'package:myapp/src/categories/index.dart';
+import 'package:myapp/src/setting/index.dart';
 
 // 状态管理导入
 // import 'package:myapp/src/state/daystate.dart';
@@ -94,6 +95,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               Placeholder(),  // 占位页面（实际跳转到记账页）
               YearPage(),
               CategoriesPage(),
+              Setting(),
             ],
           ),
         ),
@@ -109,7 +111,13 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             ],
           ),
           child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
             backgroundColor: AppColors.appBarBackground,
+            elevation: 8,
+            selectedItemColor: AppColors.iconSelected,
+            unselectedItemColor: AppColors.iconUnselected,
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
             currentIndex: _currentIndex,
             onTap: (index) {
               if (index == 1) {
@@ -154,6 +162,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 icon: Icon(Icons.category_outlined),
                 activeIcon: Icon(Icons.category),
                 label: '其他账本',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings_outlined),
+                activeIcon: Icon(Icons.settings),
+                label: '设置',
               ),
             ],
           ),

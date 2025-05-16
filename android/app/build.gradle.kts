@@ -15,10 +15,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "27.1.12297006"
     namespace = "com.example.myapp"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -38,6 +38,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // ndkVersion = "27.1.12297006"
     }
 
     signingConfigs {

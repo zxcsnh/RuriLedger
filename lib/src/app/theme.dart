@@ -13,13 +13,13 @@ class AppTheme {
         color: AppColors.textPrimary,
       ),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      elevation: 8,
-      selectedItemColor: AppColors.iconSelected, 
-      unselectedItemColor: AppColors.iconUnselected,
-      showSelectedLabels: true,
-      showUnselectedLabels: true,
-      backgroundColor: AppColors.background,
-    ),
+    // bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    //   elevation: 8,
+    //   selectedItemColor: AppColors.iconSelected, 
+    //   unselectedItemColor: AppColors.iconUnselected,
+    //   showSelectedLabels: true,
+    //   showUnselectedLabels: true,
+    //   backgroundColor: AppColors.background,
+    // ),
   );
 }

@@ -3,6 +3,11 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'model.dart';
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -208,4 +213,130 @@ Future<List<double>> getSumBills({String tableName = 'bills'}) async {
     }
   }
   return [pay, income];
+}
+
+Future<bool> requestStoragePermission() async {
+  if (Platform.isAndroid) {
+    int sdkInt = (await Permission.storage.status).isGranted
+        ? (await Permission.storage.status).hashCode
+        : 0;
+
+    if (sdkInt >= 30) {
+      // Android 11 及以上
+      var status = await Permission.manageExternalStorage.status;
+      if (status.isGranted) {
+        return true;
+      } else {
+        // 请求管理所有文件权限
+        status = await Permission.manageExternalStorage.request();
+        if (status.isGranted) {
+          return true;
+        } else if (status.isPermanentlyDenied) {
+          await openAppSettings();
+        }
+        return false;
+      }
+    } else {
+      // Android 10 及以下
+      var status = await Permission.storage.status;
+      if (status.isGranted) {
+        return true;
+      } else {
+        status = await Permission.storage.request();
+        if (status.isGranted) {
+          return true;
+        } else if (status.isPermanentlyDenied) {
+          await openAppSettings();
+        }
+        return false;
+      }
+    }
+  } else {
+    // 非 Android 平台不处理
+    return true;
+  }
+}
+
+
+Future<void> exportDatabaseToCustomPath() async {
+  try {
+    // 检查存储权限
+    final hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+      print("没有存储权限");
+      return;
+    }
+    final dbFile = File(p.join(await getDatabasesPath(), 'my_db.db'));
+    if (!await dbFile.exists()) {
+      print("数据库文件不存在");
+      return;
+    }
+
+    // 让用户选择一个目录
+    String? selectedDir = await FilePicker.platform.getDirectoryPath();
+    if (selectedDir == null) {
+      print("用户取消选择目录");
+      return;
+    }
+
+    // 手动构造备份路径（包含文件名）
+    final backupFileName = 'my_db_backup_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.db';
+    final backupPath = p.join(selectedDir, backupFileName);
+
+    // 执行复制
+    await dbFile.copy(backupPath);
+    print("导出成功：$backupPath");
+  } catch (e) {
+    print('导出失败: $e');
+  }
+}
+
+
+
+Future<void> importDatabase(String backupFilePath) async {
+  try {
+    final dbPath = await getDatabasesPath();
+    final targetPath = p.join(dbPath, 'my_db.db');
+
+    final backupFile = File(backupFilePath);
+    if (await backupFile.exists()) {
+      await backupFile.copy(targetPath);
+      print('数据库已恢复');
+    } else {
+      print('备份文件不存在');
+    }
+  } catch (e) {
+    print('导入失败: $e');
+  }
+}
+
+Future<void> pickAndImportDatabase() async {
+  try {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      allowMultiple: false,
+    );
+    
+    if (result != null && result.files.isNotEmpty) {
+      final path = result.files.single.path;
+      if (path != null) {
+        await importDatabase(path);
+      }
+    } else {
+      print('未选择文件');
+    }
+  } catch (e) {
+    print('选择文件失败: $e');
+  }
+}
+Future<void> exportDatabaseToExternalDir() async {
+  final dbFile = File(p.join(await getDatabasesPath(), 'my_db.db'));
+  if (!await dbFile.exists()) return;
+
+  final externalDir = await getExternalStorageDirectory(); // App可访问的外部路径
+  final fileName = 'my_db_backup_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.db';
+  final fullPath = p.join(externalDir!.path, fileName);
+
+  await dbFile.copy(fullPath);
+  print('数据库成功导出到：$fullPath');
 }
