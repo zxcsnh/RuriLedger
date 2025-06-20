@@ -26,15 +26,17 @@ List<Map<String, dynamic>> billListData = [
           {'usefor': 'food', 'name': '餐费', 'icon': Icons.restaurant, 'type': 'pay'},
           {'usefor': 'drinks', 'name': '酒水饮料', 'icon': Icons.local_cafe, 'type': 'pay'},
           {'usefor': 'dessert', 'name': '甜品零食', 'icon': Icons.cake, 'type': 'pay'},
+          {'usefor': 'fruit', 'name': '水果', 'icon': Icons.apple, 'type': 'pay'},
         ],
       },
       {
         'type': 'taxi',
-        'name': '出行交通',
+        'name': '出行',
         'icon': Icons.local_taxi,
         'list': [
           {'usefor': 'taxi', 'name': '打车租车', 'icon': Icons.directions_car, 'type': 'pay'},
           {'usefor': 'longdistance', 'name': '旅行票费', 'icon': Icons.airplanemode_active, 'type': 'pay'},
+          {'usefor': 'hotel', 'name': '住宿', 'icon': Icons.hotel, 'type': 'pay'}
         ],
       },
       {
@@ -53,10 +55,11 @@ List<Map<String, dynamic>> billListData = [
         'name': '日常支出',
         'icon': Icons.shopping_cart,
         'list': [
+          {'usefor': 'dailyNecessities', 'name': '日用品', 'icon': Icons.local_mall, 'type': 'pay'},
           {'usefor': 'clothes', 'name': '衣服裤子', 'icon': Icons.checkroom, 'type': 'pay'},
           {'usefor': 'bag', 'name': '鞋帽包包', 'icon': Icons.shopping_bag, 'type': 'pay'},
           {'usefor': 'book', 'name': '知识学习', 'icon': Icons.book, 'type': 'pay'},
-          {'usefor': 'promote', 'name': '能力提升', 'icon': Icons.book, 'type': 'pay'},
+          {'usefor': 'promote', 'name': '能力提升', 'icon': Icons.psychology, 'type': 'pay'},
           {'usefor': 'home', 'name': '家装布置', 'icon': Icons.home, 'type': 'pay'},
         ],
       },
@@ -65,7 +68,10 @@ List<Map<String, dynamic>> billListData = [
         'name': '其他支出',
         'icon': Icons.settings,
         'list': [
+          {'usefor': 'phone', 'name': '手机通讯', 'icon': Icons.phone_android, 'type': 'pay'},
+          {'usefor': 'gift', 'name': '礼物赠品', 'icon': Icons.card_giftcard, 'type': 'pay'},
           {'usefor': 'community', 'name': '社区缴费', 'icon': Icons.people, 'type': 'pay'},
+          {'usefor': 'lend', 'name': '借出', 'icon': Icons.money_off, 'type': 'pay'},
           {'usefor': 'otherPay', 'name': '其他支出', 'icon': Icons.help_outline, 'type': 'pay'},
         ],
       },
@@ -82,6 +88,7 @@ List<Map<String, dynamic>> billListData = [
           {'usefor': 'salary', 'name': '工资', 'icon': Icons.money, 'type': 'income'},
           {'usefor': 'overtimepay', 'name': '加班', 'icon': Icons.access_time, 'type': 'income'},
           {'usefor': 'bonus', 'name': '奖金', 'icon': Icons.card_giftcard, 'type': 'income'},
+          {'usefor': 'sponsorship', 'name': '赞助', 'icon': Icons.money, 'type': 'income'},
         ],
       },
       {
